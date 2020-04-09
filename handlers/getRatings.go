@@ -10,8 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetPackage(w http.ResponseWriter, r *http.Request) {
-	log.Debug("GetPackage package attempt")
+func GetRatings(w http.ResponseWriter, r *http.Request) {
+	log.Debug("GetRatings attempt")
 
 	packageName, exists := mux.Vars(r)["name"]
 	if !exists {

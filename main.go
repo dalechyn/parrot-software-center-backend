@@ -9,6 +9,7 @@ import (
 	"parrot-software-center-backend/utils"
 	"time"
 
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,9 +19,15 @@ var config struct {
 }
 
 func init() {
-	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second * 15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second * 15,
+		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.BoolVar(&config.debug, "debug", false, "debug")
 	flag.Parse()
+
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+		return
+	}
 
 	// Opening database to check for errors at the very start
 	utils.InitDB()
