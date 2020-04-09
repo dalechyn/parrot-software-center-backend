@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"parrot-software-center-backend/models"
-
-	"go.mongodb.org/mongo-driver/bson"
+	"parrot-software-center-backend/utils"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -15,23 +13,25 @@ import (
 func GetPackage(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GetPackage package attempt")
 
-	packageId, exists := mux.Vars(r)["id"]
+	packageName, exists := mux.Vars(r)["name"]
 	if !exists {
 		log.Debug("Bad request: ", r.URL.String())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	lookedUpPackage := &models.PackageSchema{}
-	if err := packageCollection.
-		FindOne(context.TODO(), bson.D{{"id", packageId}}).
-		Decode(&lookedUpPackage); err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
+	db := utils.GetDB()
+
+	lookedUpRating := &models.PackageRating{}
+	row := db.QueryRow("select * from Ratings where package_name = $1", packageName)
+	err := row.Scan(&lookedUpRating.Name, &lookedUpRating.Rating)
+	if err != nil{
+		log.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	resBytes, err := json.Marshal(&getResponse{lookedUpPackage.ID, lookedUpPackage.Name,
-		lookedUpPackage.Description})
+	resBytes, err := json.Marshal(&getResponse{lookedUpRating.Name, lookedUpRating.Rating})
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

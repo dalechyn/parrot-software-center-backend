@@ -12,7 +12,7 @@ import (
 func Router() http.Handler  {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/packages/{id}", handlers.GetPackage).
+	r.HandleFunc("/ratings/{name}", handlers.GetPackage).
 		Methods("GET")
 
 	loggedHandler := LoggingHandler(log.New().Writer(), r)

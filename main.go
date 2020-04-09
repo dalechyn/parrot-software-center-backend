@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"parrot-software-center-backend/utils"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -21,14 +22,15 @@ func init() {
 	flag.BoolVar(&config.debug, "debug", false, "debug")
 	flag.Parse()
 
+	// Opening database to check for errors at the very start
+	utils.InitDB()
+
 	if config.debug {
 		// The TextFormatter is default, you don't actually have to do this.
 		log.SetFormatter(&log.TextFormatter{})
 	} else {
 		log.SetFormatter(&log.JSONFormatter{})
 	}
-
-
 }
 
 func main() {
