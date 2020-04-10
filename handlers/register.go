@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -24,9 +23,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user exists
 	id := 0
-	row := db.QueryRow("select id from Users where username = $1", inRequest.Username)
-	if err := row.Scan(&id); err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+	row := db.QueryRow("select id from Users where username = $1 or email = $2", inRequest.Username,
+		inRequest.Email)
+	if err := row.Scan(&id); err == nil {
+		log.Errorf("attempt to register existing user - username: %s, email: %s",
+			inRequest.Username, inRequest.Email)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
