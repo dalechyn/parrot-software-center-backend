@@ -22,16 +22,38 @@ func GetRatings(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	lookedUpRating := &models.PackageRating{}
-	row := db.QueryRow("select * from Ratings where package_name = $1", packageName)
-	err := row.Scan(&lookedUpRating.Name, &lookedUpRating.Rating)
-	if err != nil{
+	var lookedUpRatings []models.PackageRating
+	rows, err := db.Query("select * from Ratings where package_name = $1", packageName)
+	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	defer rows.Close()
+	for rows.Next() {
+		r := models.PackageRating{}
+		err := rows.Scan(&r.UserID, &r.Name, &r.Rating)
+		if err != nil{
+			log.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		lookedUpRatings = append(lookedUpRatings, r)
+	}
 
-	resBytes, err := json.Marshal(&getResponse{lookedUpRating.Name, lookedUpRating.Rating})
+	if len(lookedUpRatings) == 0 {
+		log.Error(err)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	averageRating := 0
+	for _, r := range lookedUpRatings {
+		averageRating += r.Rating
+	}
+
+	resBytes, err := json.Marshal(&getResponse{lookedUpRatings[0].Name,
+		float64(averageRating) / float64(len(lookedUpRatings))})
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

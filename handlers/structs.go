@@ -2,7 +2,7 @@ package handlers
 
 type getResponse struct {
 	Name string `json:"name"`
-	Rating string `json:"rating"`
+	Rating float64 `json:"rating"`
 }
 
 type registerRequest struct {

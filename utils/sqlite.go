@@ -24,7 +24,7 @@ func InitUserTable() {
 
 func InitRatingsTable() {
 	_, err := db.Exec("create table if not exists Ratings (user_id integer primary key not null, " +
-		"package_name text not null, package_rating real not null)")
+		"package_name text not null, package_rating integer not null)")
 	if err != nil {
 		log.Fatal("Initial table creation error", err)
 	}
@@ -69,7 +69,7 @@ func GetIDFromToken(tokenStr string) (int, error) {
 	// Check if user exists
 	id := -1
 	row := db.QueryRow("select id from Users where username = $1", claims.Username)
-	if err := row.Scan(&id); err == nil || err != sql.ErrNoRows {
+	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
 

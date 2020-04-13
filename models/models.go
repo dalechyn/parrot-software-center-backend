@@ -11,7 +11,7 @@ type User struct {
 type PackageRating struct {
 	UserID string
 	Name   string
-	Rating string
+	Rating int
 }
 
 type Claims struct {

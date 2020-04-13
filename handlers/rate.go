@@ -12,8 +12,8 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	token := q.Get("token")
-	packageName := q.Get("name")
-	packageRating := q.Get("mark")
+	packageName := q.Get("package_name")
+	packageRating := q.Get("package_rating")
 
 	if token == "" || packageName == "" || packageRating == "" {
 		log.Debug("Bad request: ", r.URL.String())
@@ -25,7 +25,7 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := utils.GetIDFromToken(token)
 
-	_, err = db.Exec("insert into Ratings (user_id, package_name, package_rating) values ($1, $2, $3)",
+	_, err = db.Exec("replace into Ratings (user_id, package_name, package_rating) values ($1, $2, $3)",
 		userId, packageName, packageRating)
 	if err != nil{
 		log.Error(err)

@@ -13,7 +13,7 @@ func Router() http.Handler  {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/ratings/{name}", handlers.GetRatings).Methods("GET")
-	r.HandleFunc("/rate/{name}/{mark:[1-5]}", handlers.Rate).Methods("POST")
+	r.HandleFunc("/rate", handlers.Rate).Methods("PUT")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")
 
