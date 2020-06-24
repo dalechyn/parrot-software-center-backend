@@ -10,7 +10,7 @@ import (
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Login attempt")
+	log.Debug("Register attempt")
 	db := utils.GetDB()
 
 	// Decoding http request

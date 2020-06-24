@@ -6,13 +6,13 @@ type getResponse struct {
 }
 
 type registerRequest struct {
-	Username string `json:"username"`
+	Login    string `json:"login"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type loginRequest struct {
-	Username string `json:"username"`
+	Username string `json:"login"`
 	Password string `json:"password"`
 }
 

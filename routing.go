@@ -8,11 +8,11 @@ import (
 	"parrot-software-center-backend/handlers"
 )
 
-func Router(assetsDirectory string) http.Handler  {
+func Router() http.Handler  {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/ratings/{name}", handlers.Ratings).Methods("GET")
-	r.HandleFunc("/rate", handlers.Rate).Methods("PUT")
+	r.HandleFunc("/rate/{token}/{name}/{rating}", handlers.Rate).Methods("PUT")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets")))).

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/gorilla/mux"
 	"net/http"
 	"parrot-software-center-backend/utils"
 
@@ -10,12 +11,12 @@ import (
 func Rate(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Rate attempt")
 
-	q := r.URL.Query()
-	token := q.Get("token")
-	packageName := q.Get("package_name")
-	packageRating := q.Get("package_rating")
+	vars := mux.Vars(r)
+	token, tokenExists := vars["token"]
+	packageName, nameExists := vars["name"]
+	packageRating, ratingExists := vars["rating"]
 
-	if token == "" || packageName == "" || packageRating == "" {
+	if !tokenExists || !nameExists || !ratingExists {
 		log.Debug("Bad request: ", r.URL.String())
 		w.WriteHeader(http.StatusBadRequest)
 		return

@@ -14,7 +14,6 @@ import (
 )
 
 var config struct {
-	assetsDir        string
 	gracefulExitWait time.Duration
 	debug            bool
 }
@@ -22,8 +21,6 @@ var config struct {
 func init() {
 	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second * 15,
 		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
-	flag.StringVar(&config.assetsDir, "assets", "assets/",
-		"assets directory for package pictures")
 	flag.BoolVar(&config.debug, "debug", false, "debug")
 	flag.Parse()
 
@@ -50,7 +47,7 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler: Router(config.assetsDir), // Pass our instance of gorilla/mux in.
+		Handler: Router(), // Pass our instance of gorilla/mux in.
 	}
 
 	// Run our server in a goroutine so that it doesn't block.
