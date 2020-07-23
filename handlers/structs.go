@@ -5,6 +5,13 @@ type getResponse struct {
 	Rating float64 `json:"rating"`
 }
 
+type rateRequest struct {
+	Token string `json:"token"`
+	Name string `json:"name"`
+	Rating float64 `json:"rating"`
+	Comment string `json:"comment"`
+}
+
 type registerRequest struct {
 	Login    string `json:"login"`
 	Email    string `json:"email"`

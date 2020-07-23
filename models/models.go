@@ -12,6 +12,7 @@ type PackageRating struct {
 	UserID string
 	Name   string
 	Rating int
+	Commentary string
 }
 
 type Claims struct {
