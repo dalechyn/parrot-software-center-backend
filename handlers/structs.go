@@ -1,7 +1,7 @@
 package handlers
 
 type getResponse struct {
-	Name string `json:"name"`
+	Login string `json:"login"`
 	Rating float64 `json:"rating"`
 }
 
@@ -9,7 +9,7 @@ type rateRequest struct {
 	Token string `json:"token"`
 	Name string `json:"name"`
 	Rating float64 `json:"rating"`
-	Comment string `json:"comment"`
+	Comment string `json:"commentary"`
 }
 
 type registerRequest struct {

@@ -23,7 +23,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 	db := utils.GetDB()
 
 	var lookedUpRatings []models.PackageRating
-	rows, err := db.Query("select * from Ratings where package_name = $1", packageName)
+	rows, err := db.Query("select * from Ratings where name = $1", packageName)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -32,7 +32,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		r := models.PackageRating{}
-		err := rows.Scan(&r.UserID, &r.Name, &r.Rating)
+		err := rows.Scan(&r.UserID, &r.Name, &r.Rating, &r.Commentary)
 		if err != nil{
 			log.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -42,7 +42,6 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(lookedUpRatings) == 0 {
-		log.Error(err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}

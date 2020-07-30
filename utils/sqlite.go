@@ -24,7 +24,7 @@ func InitUserTable() {
 
 func InitRatingsTable() {
 	_, err := db.Exec("create table if not exists Ratings (user_id integer primary key not null, " +
-		"package_name text not null, package_rating integer not null, commentary text)")
+		"name text not null, rating integer not null, commentary text)")
 	if err != nil {
 		log.Fatal("Initial table creation error", err)
 	}

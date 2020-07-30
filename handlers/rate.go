@@ -23,7 +23,7 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := utils.GetIDFromToken(inRequest.Token)
 
-	_, err = db.Exec("replace into Ratings (user_id, package_name, package_rating) values ($1, $2, $3, $4)",
+	_, err = db.Exec("replace into Ratings (user_id, name, rating, commentary) values ($1, $2, $3, $4)",
 		userId, inRequest.Name, inRequest.Rating, inRequest.Comment)
 	if err != nil{
 		log.Error(err)
