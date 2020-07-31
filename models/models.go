@@ -8,13 +8,6 @@ type User struct {
 	Password string
 }
 
-type PackageRating struct {
-	UserID string
-	Name   string
-	Rating int
-	Commentary string
-}
-
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims

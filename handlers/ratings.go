@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
 
 	"github.com/gorilla/mux"
@@ -22,37 +21,34 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	var lookedUpRatings []models.PackageRating
-	rows, err := db.Query("select * from Ratings where name = $1", packageName)
+	rows, err := db.Query("select rating from ratings where name = $1", packageName)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer rows.Close()
+	rating := 0
+	quantity := 0
 	for rows.Next() {
-		r := models.PackageRating{}
-		err := rows.Scan(&r.UserID, &r.Name, &r.Rating, &r.Commentary)
+		quantity++
+		rowRating := 0
+		err := rows.Scan(&rowRating)
 		if err != nil{
 			log.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		lookedUpRatings = append(lookedUpRatings, r)
+		rating += rowRating
 	}
 
-	if len(lookedUpRatings) == 0 {
+	if quantity == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	averageRating := 0
-	for _, r := range lookedUpRatings {
-		averageRating += r.Rating
-	}
-
-	resBytes, err := json.Marshal(&getResponse{lookedUpRatings[0].Name,
-		float64(averageRating) / float64(len(lookedUpRatings))})
+	resBytes, err := json.Marshal(&getResponse{
+		float64(rating) / float64(quantity)})
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

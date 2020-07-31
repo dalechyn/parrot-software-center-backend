@@ -26,7 +26,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user exists
 	lookedUpUser := &models.User{}
-	row := db.QueryRow("select id, username, password from Users where username = $1", inRequest.Username)
+	row := db.QueryRow("select id, username, password from users where username = $1", inRequest.Username)
 	if err := row.Scan(&lookedUpUser.ID, &lookedUpUser.Username, &lookedUpUser.Password); err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)

@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
 
 	"github.com/gorilla/mux"
@@ -22,8 +21,8 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	var lookedUpRatings []models.PackageRating
-	rows, err := db.Query("select * from Ratings where package_name = $1", packageName)
+	var lookedUpRatings []reviewResponse
+	rows, err := db.Query("select author, rating, commentary from ratings where name = $1", packageName)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -31,8 +30,8 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		r := models.PackageRating{}
-		err := rows.Scan(&r.UserID, &r.Name, &r.Rating, &r.Commentary)
+		r := reviewResponse{}
+		err := rows.Scan(&r.Author, &r.Rating, &r.Commentary)
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusBadRequest)

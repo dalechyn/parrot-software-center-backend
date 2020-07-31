@@ -1,8 +1,13 @@
 package handlers
 
 type getResponse struct {
-	Login string `json:"login"`
 	Rating float64 `json:"rating"`
+}
+
+type reviewResponse struct {
+	Author string `json:"author"`
+	Rating int `json:"rating"`
+	Commentary string `json:"commentary"`
 }
 
 type rateRequest struct {
