@@ -34,7 +34,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(inRequest.Password), 14)
 
-	_, err = db.Exec("insert into users (email, username, password) values ($1, $2, $3)",
+	_, err = db.Exec("insert into users (email, username, password, confirmed) values ($1, $2, $3, 0)",
 		inRequest.Email, inRequest.Login, string(bytes))
 	if err != nil{
 		panic(err)

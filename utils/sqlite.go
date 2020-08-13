@@ -16,7 +16,7 @@ var db *sql.DB
 
 func InitUserTable() {
 	_, err := db.Exec("create table if not exists users (id integer primary key autoincrement, " +
-		"email text not null, username text not null, password text not null)")
+		"email text not null, username text not null, password text not null, confirmed boolean not null check (confirmed in (0,1)))")
 	if err != nil {
 		log.Fatal("Initial table creation error", err)
 	}
