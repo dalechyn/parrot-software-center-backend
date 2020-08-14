@@ -13,6 +13,7 @@ func Router() http.Handler  {
 
 	r.HandleFunc("/ratings/{name}", handlers.Ratings).Methods("GET")
 	r.HandleFunc("/reviews/{name}", handlers.Reviews).Methods("GET")
+	r.HandleFunc("/confirm/{token}", handlers.Confirm).Methods("GET")
 	r.HandleFunc("/rate", handlers.Rate).Methods("PUT")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")

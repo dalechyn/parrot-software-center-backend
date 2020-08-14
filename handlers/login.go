@@ -26,8 +26,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user exists
 	lookedUpUser := &models.User{}
-	row := db.QueryRow("select id, username, password from users where username = $1", inRequest.Username)
-	if err := row.Scan(&lookedUpUser.ID, &lookedUpUser.Username, &lookedUpUser.Password); err != nil && err != sql.ErrNoRows {
+	row := db.QueryRow("select id, username, password, confirmed from users where username = $1", inRequest.Username)
+	if err := row.Scan(&lookedUpUser.ID, &lookedUpUser.Username, &lookedUpUser.Password, &lookedUpUser.Confirmed); err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -40,6 +40,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	if !lookedUpUser.Confirmed {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	// Generate some tokens for him
 	token, err := tokens.Generate(lookedUpUser.Username)
 	if err != nil {

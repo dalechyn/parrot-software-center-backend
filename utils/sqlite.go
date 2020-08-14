@@ -61,7 +61,7 @@ func GetIDFromToken(tokenStr string) (int, error) {
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}
-	claims, ok := token.Claims.(*models.Claims);
+	claims, ok := token.Claims.(*models.Claims)
 	if !ok || !token.Valid {
 		return 0, errors.New("invalid token")
 	}
