@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"parrot-software-center-backend/utils"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -29,8 +28,6 @@ func init() {
 		return
 	}
 
-	// Opening database to check for errors at the very start
-	utils.InitDB()
 
 	if config.debug {
 		// The TextFormatter is default, you don't actually have to do this.

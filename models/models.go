@@ -10,11 +10,11 @@ type User struct {
 }
 
 type Claims struct {
-	Username string `json:"username"`
+	Key string
 	jwt.StandardClaims
 }
 
 type ConfirmClaims struct {
-	ID int64
+	Key string
 	jwt.StandardClaims
 }

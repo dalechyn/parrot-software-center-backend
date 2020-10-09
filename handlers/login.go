@@ -1,20 +1,18 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
+	"fmt"
+	"github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/tokens"
 	"parrot-software-center-backend/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Login attempt")
-	db := utils.GetDB()
 
 	// Decoding http request
 	inRequest := &loginRequest{}
@@ -25,15 +23,33 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists
-	lookedUpUser := &models.User{}
-	row := db.QueryRow("select id, username, password, confirmed from users where username = $1", inRequest.Username)
-	if err := row.Scan(&lookedUpUser.ID, &lookedUpUser.Username, &lookedUpUser.Password, &lookedUpUser.Confirmed); err != nil && err != sql.ErrNoRows {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:26379",
+		Password: utils.GetRedisPassword(),
+	})
+
+	newKeys, cursor, err := rdb.SScan(ctx, "users", 0, fmt.Sprintf("user-*-%s", inRequest.Username), 1).Result()
+
+	if err != nil {
 		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if cursor == 0 {
+		log.Error("attempt to login a user which does not exist")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	byteHash := []byte(lookedUpUser.Password)
+	resMap, err := rdb.HMGet(ctx, newKeys[0], "username", "password", "confirmed").Result()
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	byteHash := []byte(resMap[1].(string))
 	err = bcrypt.CompareHashAndPassword(byteHash, []byte(inRequest.Password))
 	if err != nil {
 		log.Error(err)
@@ -41,13 +57,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !lookedUpUser.Confirmed {
+	if resMap[2].(string) == "0" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	// Generate some tokens for him
-	token, err := tokens.Generate(lookedUpUser.Username)
+	token, err := tokens.Generate(newKeys[0])
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

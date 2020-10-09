@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -19,27 +22,46 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := utils.GetDB()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:26379",
+		Password: utils.GetRedisPassword(),
+	})
 
-	rows, err := db.Query("select rating from ratings where name = $1", packageName)
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	defer rows.Close()
-	rating := 0
-	quantity := 0
-	for rows.Next() {
-		quantity++
-		rowRating := 0
-		err := rows.Scan(&rowRating)
-		if err != nil{
+	var cursor uint64
+	var keys []string
+	for {
+		var newKeys []string
+		var err error
+		newKeys, cursor, err = rdb.SScan(ctx, "ratings", cursor, fmt.Sprintf("rating-%s-*", packageName), 10).Result()
+		if err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		rating += rowRating
+		keys = append(keys, newKeys...)
+		if cursor == 0 {
+			break
+		}
+	}
+
+	rating := 0
+	quantity := 0
+	for _, key := range keys {
+		ratingStr, err := rdb.HGet(ctx, key, "rating").Result()
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		r, err := strconv.Atoi(ratingStr)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		rating += r
+		quantity++
 	}
 
 	if quantity == 0 {

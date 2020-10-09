@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
@@ -10,14 +11,17 @@ import (
 	"os"
 	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
+	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 )
 
+var ctx = context.Background()
+
 func Register(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Register attempt")
-	db := utils.GetDB()
 
 	// Decoding http request
 	inRequest := &registerRequest{}
@@ -28,28 +32,52 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists
-	id := 0
-	row := db.QueryRow("select id from users where username = $1 or email = $2", inRequest.Login,
-		inRequest.Email)
-	if err := row.Scan(&id); err == nil {
-		log.Errorf("attempt to register existing user - username: %s, email: %s",
-			inRequest.Login, inRequest.Email)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:26379",
+		Password: utils.GetRedisPassword(),
+	})
+
+	var cursor uint64
+	var keys []string
+
+	for {
+		var err error
+		var newKeys []string
+		newKeys, cursor, err = rdb.SScan(ctx, "users", cursor, "user-*", 10).Result()
+
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		for _, key := range newKeys {
+			if split := strings.Split(key[4:], "-"); split[0] == inRequest.Email || split[1] == inRequest.Login {
+				log.Errorf("attempt to register existing user - username: %s, email: %s",
+					inRequest.Login, inRequest.Email)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		}
+
+		keys = append(keys, newKeys...)
+		if cursor == 0 {
+			break
+		}
 	}
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(inRequest.Password), 14)
 
-	result, err := db.Exec("insert into users (email, username, password, confirmed) values ($1, $2, $3, 0)",
-		inRequest.Email, inRequest.Login, string(bytes))
-	if err != nil {
+	userKey := fmt.Sprintf("user-%s-%s", inRequest.Email, inRequest.Login)
+	if _, err := rdb.HSet(ctx,
+		userKey,
+		"email", inRequest.Email, "login", inRequest.Login, "password", string(bytes), "confirmed", "0").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	newID, err := result.LastInsertId()
-	if err != nil {
+	if _, err := rdb.SAdd(ctx, "users", userKey).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -57,7 +85,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		&models.ConfirmClaims{
-			ID: newID,
+			Key: userKey,
 			StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Add(1 * time.Hour).Unix()}})
 
 	emailSecret, emailSecretExists := os.LookupEnv("EMAIL_KEY")

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
@@ -15,7 +16,11 @@ import (
 func Confirm(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Confirm attempt")
 
-	db := utils.GetDB()
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:26379",
+		Password: utils.GetRedisPassword(),
+	})
+
 	tokenStr, exists := mux.Vars(r)["token"]
 	if !exists {
 		log.Debug("Bad request: ", r.URL.String())
@@ -51,7 +56,7 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := db.Exec("update users set confirmed = 1 where id = $1", claims.ID); err != nil {
+	if _, err := rdb.HSet(ctx, claims.Key, "confirm").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

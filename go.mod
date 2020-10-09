@@ -6,6 +6,7 @@ require (
 	github.com/arduino/go-apt-client v0.0.0-20190812130613-5613f843fdc8 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emersion/go-imap v1.0.5 // indirect
+	github.com/go-redis/redis/v8 v8.2.3
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/joho/godotenv v1.3.0

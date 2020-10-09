@@ -8,9 +8,9 @@ import (
 
 
 
-func Generate(username string) (string, error) {
+func Generate(key string) (string, error) {
 	// JWT creation
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &models.Claims{Username:username})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &models.Claims{Key: key})
 
 	tokenString, _ := token.SignedString([]byte(utils.GetSecret()))
 	return tokenString, nil

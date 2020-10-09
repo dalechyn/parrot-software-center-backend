@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"parrot-software-center-backend/utils"
 
@@ -19,22 +21,40 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := utils.GetDB()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:26379",
+		Password: utils.GetRedisPassword(),
+	})
 
-	userId, err := utils.GetIDFromToken(inRequest.Token)
+	userKey, err := utils.GetKeyFromToken(inRequest.Token)
 
-	username := ""
-	row := db.QueryRow("select username from users where id = $1", userId)
-	if err := row.Scan(&username); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	_, err = db.Exec("replace into ratings (user_id, name, author, rating, commentary) values ($1, $2, $3, $4, $5)",
-		userId, inRequest.Name, username, inRequest.Rating, inRequest.Comment)
-	if err != nil{
+	login, err := rdb.HGet(ctx, userKey, "login").Result()
+
+	if err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	ratingKey := fmt.Sprintf("rating-%s-%s", inRequest.Name, login)
+
+	_, err = rdb.HSet(ctx, ratingKey, "rating", inRequest.Rating, "commentary", inRequest.Comment).Result()
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = rdb.SAdd(ctx, "ratings", ratingKey).Result()
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
