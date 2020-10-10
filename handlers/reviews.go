@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -22,8 +23,10 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:26379",
+	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
+		SentinelAddrs: []string{":26379", ":26380", ":26381"},
+		MasterName: "mymaster",
+		SentinelPassword: utils.GetRedisPassword(),
 		Password: utils.GetRedisPassword(),
 	})
 
@@ -53,9 +56,16 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		rating, err := strconv.Atoi(res[0].(string))
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		lookedUpRatings = append(lookedUpRatings, reviewResponse{
 			Author:     strings.Split(key, "-")[2],
-			Rating:     res[0].(int),
+			Rating:     rating,
 			Commentary: res[1].(string),
 		})
 	}

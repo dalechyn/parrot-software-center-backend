@@ -32,8 +32,10 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:26379",
+	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
+		SentinelAddrs: []string{":26379", ":26380", ":26381"},
+		MasterName: "mymaster",
+		SentinelPassword: utils.GetRedisPassword(),
 		Password: utils.GetRedisPassword(),
 	})
 
@@ -71,7 +73,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	userKey := fmt.Sprintf("user-%s-%s", inRequest.Email, inRequest.Login)
 	if _, err := rdb.HSet(ctx,
 		userKey,
-		"email", inRequest.Email, "login", inRequest.Login, "password", string(bytes), "confirmed", "0").Result(); err != nil {
+		"password", string(bytes), "confirmed", "0").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

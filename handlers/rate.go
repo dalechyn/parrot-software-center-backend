@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -21,8 +22,10 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:26379",
+	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
+		SentinelAddrs: []string{":26379", ":26380", ":26381"},
+		MasterName: "mymaster",
+		SentinelPassword: utils.GetRedisPassword(),
 		Password: utils.GetRedisPassword(),
 	})
 
@@ -34,13 +37,7 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	login, err := rdb.HGet(ctx, userKey, "login").Result()
-
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	login := strings.Split(userKey, "-")[2]
 
 	ratingKey := fmt.Sprintf("rating-%s-%s", inRequest.Name, login)
 

@@ -23,8 +23,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:26379",
+	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
+		SentinelAddrs: []string{":26379", ":26380", ":26381"},
+		MasterName: "mymaster",
+		SentinelPassword: utils.GetRedisPassword(),
 		Password: utils.GetRedisPassword(),
 	})
 
@@ -42,14 +44,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resMap, err := rdb.HMGet(ctx, newKeys[0], "username", "password", "confirmed").Result()
+	resMap, err := rdb.HMGet(ctx, newKeys[0], "password", "confirmed").Result()
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	byteHash := []byte(resMap[1].(string))
+	byteHash := []byte(resMap[0].(string))
 	err = bcrypt.CompareHashAndPassword(byteHash, []byte(inRequest.Password))
 	if err != nil {
 		log.Error(err)
@@ -57,7 +59,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if resMap[2].(string) == "0" {
+	if resMap[1].(string) == "0" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
