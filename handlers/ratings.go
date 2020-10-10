@@ -25,7 +25,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
-		SentinelPassword: utils.GetRedisPassword(),
+		SentinelPassword: utils.GetSentinelPassword(),
 		Password: utils.GetRedisPassword(),
 	})
 

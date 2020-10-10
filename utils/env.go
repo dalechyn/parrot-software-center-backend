@@ -21,3 +21,11 @@ func GetRedisPassword() string {
 	}
 	return password
 }
+
+func GetSentinelPassword() string {
+	password, exists := os.LookupEnv("SENTINEL_PASSWORD")
+	if !exists {
+		log.Fatal("env variable SENTINEL_PASSWORD is empty")
+	}
+	return password
+}
