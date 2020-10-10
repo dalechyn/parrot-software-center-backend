@@ -20,6 +20,7 @@ import (
 
 var ctx = context.Background()
 
+// POST route to register a user
 func Register(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Register attempt")
 
@@ -31,7 +32,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user exists
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
@@ -39,6 +40,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
+	// Checking either user already exists or not
 	var cursor uint64
 	var keys []string
 
@@ -79,14 +81,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Managing keys in sets will be handy in future
 	if _, err := rdb.SAdd(ctx, "users", userKey).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	// Generating confirmation token that expires in an hour
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		&models.ConfirmClaims{
+		&models.Claims{
 			Key: userKey,
 			StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Add(1 * time.Hour).Unix()}})
 
@@ -99,6 +103,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	emailConfirmationJWT, _ := token.SignedString([]byte(emailSecret))
 
+	// Connecting to smtp server and sending the confirmation email
 	email, loginExists := os.LookupEnv("EMAIL_LOGIN")
 	password, passwordExists := os.LookupEnv("EMAIL_PASSWORD")
 	if !loginExists || !passwordExists {

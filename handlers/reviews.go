@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GET route to get whole ratings/reviews information
 func Reviews(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Reviews attempt")
 
@@ -23,6 +24,7 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
@@ -30,6 +32,7 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
+	// Scanning keys related to given package name
 	var cursor uint64
 	var keys []string
 	for {
@@ -47,6 +50,7 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Filling up data
 	var lookedUpRatings []reviewResponse
 	for _, key := range keys {
 		res, err := rdb.HMGet(ctx, key, "rating", "commentary").Result()

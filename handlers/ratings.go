@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GET route to get average rating of a package
 func Ratings(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Ratings attempt")
 
@@ -22,6 +23,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
@@ -29,6 +31,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
+	// Scanning for keys related to given package name
 	var cursor uint64
 	var keys []string
 	for {
@@ -46,6 +49,7 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Summing up all ratings from users
 	rating := 0
 	quantity := 0
 	for _, key := range keys {

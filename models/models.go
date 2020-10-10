@@ -13,8 +13,3 @@ type Claims struct {
 	Key string
 	jwt.StandardClaims
 }
-
-type ConfirmClaims struct {
-	Key string
-	jwt.StandardClaims
-}

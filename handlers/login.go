@@ -11,6 +11,7 @@ import (
 	"parrot-software-center-backend/utils"
 )
 
+// POST route to handle user login
 func Login(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Login attempt")
 
@@ -22,7 +23,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user exists
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
@@ -30,6 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
+	// Checking if user exists
 	newKeys, cursor, err := rdb.SScan(ctx, "users", 0, fmt.Sprintf("user-*-%s", inRequest.Username), 1).Result()
 
 	if err != nil {
@@ -59,6 +61,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Restrict user from logging in if account is not confirmed
 	if resMap[1].(string) == "0" {
 		w.WriteHeader(http.StatusForbidden)
 		return

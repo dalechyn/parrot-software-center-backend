@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// PUT route to rate and comment a package
 func Rate(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Rate attempt")
 
@@ -22,6 +23,7 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",

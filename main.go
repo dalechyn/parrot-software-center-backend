@@ -28,7 +28,6 @@ func init() {
 		return
 	}
 
-
 	if config.debug {
 		// The TextFormatter is default, you don't actually have to do this.
 		log.SetFormatter(&log.TextFormatter{})

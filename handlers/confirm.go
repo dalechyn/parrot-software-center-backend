@@ -13,9 +13,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GET route to confirm registered account
 func Confirm(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Confirm attempt")
 
+	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
 		SentinelAddrs: []string{":26379", ":26380", ":26381"},
 		MasterName: "mymaster",
@@ -37,7 +39,8 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwt.ParseWithClaims(tokenStr, &models.ConfirmClaims{}, func(token *jwt.Token) (interface{}, error) {
+	// Parsing user key to confirm him
+	token, err := jwt.ParseWithClaims(tokenStr, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -51,7 +54,7 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, ok := token.Claims.(*models.ConfirmClaims)
+	claims, ok := token.Claims.(*models.Claims)
 	if !ok || !token.Valid {
 		log.Error("invalid token")
 		w.WriteHeader(http.StatusBadRequest)
