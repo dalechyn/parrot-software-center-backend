@@ -122,7 +122,7 @@ Subject: Parrot Software Center Account Confirmation
 Hi! To confirm your Parrot Software Center account, please follow the link: http://localhost:8000/confirm/%s`, to, emailConfirmationJWT)
 	msg := []byte(body)
 
-	if err := smtp.SendMail("smtp.gmail.com:587", auth, "vlad.dalechin@gmail.com", to, msg); err != nil {
+	if err := smtp.SendMail("smtp.gmail.com:587", auth, email, to, msg); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

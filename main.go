@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,11 +21,6 @@ func init() {
 		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.BoolVar(&config.debug, "debug", false, "debug")
 	flag.Parse()
-
-	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
-		return
-	}
 
 	if config.debug {
 		// The TextFormatter is default, you don't actually have to do this.

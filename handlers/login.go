@@ -32,7 +32,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Checking if user exists
-	newKeys, cursor, err := rdb.SScan(ctx, "users", 0, fmt.Sprintf("user-*-%s", inRequest.Username), 1).Result()
+	newKeys, _, err := rdb.SScan(ctx, "users", 0, fmt.Sprintf("user-*-%s", inRequest.Username), 1).Result()
 
 	if err != nil {
 		log.Error(err)
@@ -40,7 +40,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cursor == 0 {
+	if len(newKeys) == 0 {
 		log.Error("attempt to login a user which does not exist")
 		w.WriteHeader(http.StatusBadRequest)
 		return
