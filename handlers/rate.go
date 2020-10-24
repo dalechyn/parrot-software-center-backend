@@ -25,7 +25,7 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 
 	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
-		SentinelAddrs: []string{":26379", ":26380", ":26381"},
+		SentinelAddrs: []string{"sentinel:26379", "sentinel:26380", "sentinel:26381"},
 		MasterName: "mymaster",
 		SentinelPassword: utils.GetSentinelPassword(),
 		Password: utils.GetRedisPassword(),
