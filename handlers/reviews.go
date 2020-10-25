@@ -32,19 +32,19 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
-	// Scanning keys related to given package name
+	// Scanning keysAndScores related to given package name
 	var cursor uint64
-	var keys []string
+	var keysAndScores []string
 	for {
 		var newKeys []string
 		var err error
-		newKeys, cursor, err = rdb.SScan(ctx, "ratings", cursor, fmt.Sprintf("rating-%s-*", packageName), 10).Result()
+		newKeys, cursor, err = rdb.ZScan(ctx, "ratings", cursor, fmt.Sprintf("rating_%s_*", packageName), 10).Result()
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		keys = append(keys, newKeys...)
+		keysAndScores = append(keysAndScores, newKeys...)
 		if cursor == 0 {
 			break
 		}
@@ -52,15 +52,16 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 
 	// Filling up data
 	var lookedUpRatings []reviewResponse
-	for _, key := range keys {
-		res, err := rdb.HMGet(ctx, key, "rating", "commentary").Result()
+	fmt.Print("HEY", keysAndScores)
+	for i := 0; i < len(keysAndScores); i += 2 {
+		res, err := rdb.Get(ctx, keysAndScores[i]).Result()
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		rating, err := strconv.Atoi(res[0].(string))
+		rating, err := strconv.Atoi(keysAndScores[i + 1])
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -68,9 +69,9 @@ func Reviews(w http.ResponseWriter, r *http.Request) {
 		}
 
 		lookedUpRatings = append(lookedUpRatings, reviewResponse{
-			Author:     strings.Split(key, "-")[2],
+			Author:     strings.Split(keysAndScores[i], "_")[2],
 			Rating:     rating,
-			Commentary: res[1].(string),
+			Commentary: res,
 		})
 	}
 

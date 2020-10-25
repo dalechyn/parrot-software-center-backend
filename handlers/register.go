@@ -11,7 +11,6 @@ import (
 	"os"
 	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -41,41 +40,38 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Checking either user already exists or not
-	var cursor uint64
-	var keys []string
-
-	for {
-		var err error
-		var newKeys []string
-		newKeys, cursor, err = rdb.SScan(ctx, "users", cursor, "user-*", 10).Result()
-
-		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
+	userKey := fmt.Sprintf("user_%s", inRequest.Login)
+	if exists, err := rdb.Exists(ctx, userKey).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else {
+		if exists == 1 {
+			log.Errorf("attempt to register user with existing username - username: %s, email: %s",
+				inRequest.Login, inRequest.Email)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+	}
 
-		for _, key := range newKeys {
-			if split := strings.Split(key[4:], "-"); split[0] == inRequest.Email || split[1] == inRequest.Login {
-				log.Errorf("attempt to register existing user - username: %s, email: %s",
-					inRequest.Login, inRequest.Email)
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-		}
-
-		keys = append(keys, newKeys...)
-		if cursor == 0 {
-			break
+	if exists, err := rdb.SIsMember(ctx, "emails", inRequest.Email).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else {
+		if exists {
+			log.Errorf("attempt to register user with existing email - username: %s, email: %s",
+				inRequest.Login, inRequest.Email)
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 	}
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(inRequest.Password), 14)
 
-	userKey := fmt.Sprintf("user-%s-%s", inRequest.Email, inRequest.Login)
 	if _, err := rdb.HSet(ctx,
 		userKey,
-		"password", string(bytes), "confirmed", "0").Result(); err != nil {
+		"email", inRequest.Email, "password", string(bytes), "confirmed", "0").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -83,6 +79,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	// Managing keys in sets will be handy in future
 	if _, err := rdb.SAdd(ctx, "users", userKey).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := rdb.SAdd(ctx, "emails", inRequest.Email).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

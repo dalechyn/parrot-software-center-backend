@@ -19,6 +19,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	inRequest := &loginRequest{}
 	err := json.NewDecoder(r.Body).Decode(inRequest)
 	if err != nil {
+		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -32,21 +33,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Checking if user exists
-	newKeys, _, err := rdb.SScan(ctx, "users", 0, fmt.Sprintf("user-*-%s", inRequest.Username), 1).Result()
-
-	if err != nil {
+	userKey := fmt.Sprintf("user_%s", inRequest.Username)
+	if exists, err := rdb.Exists(ctx, userKey).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	} else {
+		if exists == 0 {
+			log.Error("attempt to login a user which does not exist")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
-	if len(newKeys) == 0 {
-		log.Error("attempt to login a user which does not exist")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	resMap, err := rdb.HMGet(ctx, newKeys[0], "password", "confirmed").Result()
+	resMap, err := rdb.HMGet(ctx, userKey, "password", "confirmed").Result()
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -68,7 +68,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate some tokens for him
-	token, err := tokens.Generate(newKeys[0])
+	token, err := tokens.Generate(userKey)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

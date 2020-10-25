@@ -32,42 +32,31 @@ func Ratings(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Scanning for keys related to given package name
+	rating := 0
+	quantity := 0
 	var cursor uint64
-	var keys []string
 	for {
 		var newKeys []string
 		var err error
-		newKeys, cursor, err = rdb.SScan(ctx, "ratings", cursor, fmt.Sprintf("rating-%s-*", packageName), 10).Result()
+		newKeys, cursor, err = rdb.ZScan(ctx, "ratings", cursor, fmt.Sprintf("rating_%s_*", packageName), 10).Result()
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		keys = append(keys, newKeys...)
+		quantity += len(newKeys) / 2
+		for i := 0; i < len(newKeys) / 2; i += 2 {
+			zRating, err := strconv.Atoi(newKeys[i + 1])
+			if err != nil {
+				log.Error(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			rating += zRating
+		}
 		if cursor == 0 {
 			break
 		}
-	}
-
-	// Summing up all ratings from users
-	rating := 0
-	quantity := 0
-	for _, key := range keys {
-		ratingStr, err := rdb.HGet(ctx, key, "rating").Result()
-		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		r, err := strconv.Atoi(ratingStr)
-		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		rating += r
-		quantity++
 	}
 
 	if quantity == 0 {

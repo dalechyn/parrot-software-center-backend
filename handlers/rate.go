@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"parrot-software-center-backend/utils"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // PUT route to rate and comment a package
@@ -39,18 +38,16 @@ func Rate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	login := strings.Split(userKey, "-")[2]
+	ratingKey := fmt.Sprintf("rating_%s_%s", inRequest.Name, strings.Split(userKey, "_")[1])
 
-	ratingKey := fmt.Sprintf("rating-%s-%s", inRequest.Name, login)
-
-	_, err = rdb.HSet(ctx, ratingKey, "rating", inRequest.Rating, "commentary", inRequest.Comment).Result()
+	_, err = rdb.Set(ctx, ratingKey, inRequest.Comment, 0).Result()
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	_, err = rdb.SAdd(ctx, "ratings", ratingKey).Result()
+	_, err = rdb.ZAdd(ctx, "ratings", &redis.Z{Score: inRequest.Rating, Member: ratingKey}).Result()
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
