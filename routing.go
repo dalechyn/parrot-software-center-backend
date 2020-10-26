@@ -17,6 +17,7 @@ func Router() http.Handler  {
 	r.HandleFunc("/rate", handlers.Rate).Methods("PUT")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")
+	r.HandleFunc("/delete", handlers.Delete).Methods("POST")
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets")))).
 		Methods("GET")
 

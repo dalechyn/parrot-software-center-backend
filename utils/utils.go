@@ -9,7 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-
 func GetKeyFromToken(tokenStr string) (string, error) {
 	hmacSecret := []byte(GetSecret())
 	token, err := jwt.ParseWithClaims(tokenStr, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {

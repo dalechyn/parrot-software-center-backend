@@ -17,6 +17,12 @@ type rateRequest struct {
 	Comment string `json:"commentary"`
 }
 
+type deleteRequest struct {
+	Token string `json:"token"`
+	Package string `json:"package"`
+	Author string `json:"author"`
+}
+
 type registerRequest struct {
 	Login    string `json:"login"`
 	Email    string `json:"email"`
@@ -31,3 +37,6 @@ type loginRequest struct {
 type loginResponse struct {
 	Token string `json:"token"`
 }
+
+const RoleUser = "user"
+const RoleModerator = "moderator"

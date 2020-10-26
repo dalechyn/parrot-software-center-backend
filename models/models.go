@@ -11,5 +11,6 @@ type User struct {
 
 type Claims struct {
 	Key string
+	Role string
 	jwt.StandardClaims
 }

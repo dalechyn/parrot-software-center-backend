@@ -67,12 +67,24 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate some tokens for him
-	token, err := tokens.Generate(userKey)
-	if err != nil {
+	token := ""
+
+	if exists, err := rdb.SIsMember(ctx, "moderators", userKey).Result(); err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
+	} else {
+		// Generate some tokens for him
+		if exists {
+			token, err = tokens.Generate(userKey, RoleModerator)
+		} else {
+			token, err = tokens.Generate(userKey, RoleUser)
+		}
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 
 	// Encode to JSON and send him
