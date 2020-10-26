@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// PUT Delete to rate and comment a package
+// PUT Delete to delete a non polite review
 func Delete(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Delete attempt")
 
