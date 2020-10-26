@@ -76,6 +76,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if _, err := rdb.Expire(ctx, userKey, time.Hour).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	// Managing keys in sets will be handy in future
 	if _, err := rdb.SAdd(ctx, "users", userKey).Result(); err != nil {

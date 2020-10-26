@@ -67,6 +67,12 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := rdb.Persist(ctx, claims.Key).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte("Account Confirmed!")); err != nil {
 		log.Error(err)
