@@ -119,17 +119,22 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := smtp.PlainAuth("Parrot Software Center", email, password, "smtp.gmail.com")
+	auth := smtp.PlainAuth("softwarecenter@parrotsec.org", email, password, "smtp.parrotsec.org")
 	to := []string{inRequest.Email}
 	body := fmt.Sprintf(
-		`From: noreply@parrot.sh
+		`From: softwarecenter@parrotsec.org
 To: %s
-Subject: Parrot Software Center Account Confirmation
+Subject: Parrot Software Center Email Confirmation
 
-Hi! To confirm your Parrot Software Center account, please follow the link: http://localhost:8000/confirm/%s`, to, emailConfirmationJWT)
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://parrotsec.org/images/logo.png" /></p>
+<h1 style="color: #2196f3; text-align: center;">Parrot Software Center Email Confirmation</h1>
+<p>Hi! To confirm your Parrot Software Center account, please follow this <a href="http://165.227.140.210:8000/confirm/%s">link</a>.</p>
+<p>If that wasn't you, just ignore this letter.</p>
+<p>&nbsp;</p>
+<h4 style="text-align: center;">Copyright &copy; 2020 Parrot Security CIC</h4>`, to, emailConfirmationJWT)
 	msg := []byte(body)
 
-	if err := smtp.SendMail("smtp.gmail.com:587", auth, email, to, msg); err != nil {
+	if err := smtp.SendMail("smtp.parrotsec.org:587", auth, email, to, msg); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

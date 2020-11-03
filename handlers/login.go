@@ -26,10 +26,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Connecting to Redis
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
-		SentinelAddrs: []string{"sentinel:26379", "sentinel:26380", "sentinel:26381"},
-		MasterName: "mymaster",
+		SentinelAddrs:    []string{"sentinel:26379", "sentinel:26380", "sentinel:26381"},
+		MasterName:       "mymaster",
 		SentinelPassword: utils.GetSentinelPassword(),
-		Password: utils.GetRedisPassword(),
+		Password:         utils.GetRedisPassword(),
 	})
 
 	// Checking if user exists
@@ -68,35 +68,53 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := ""
+	moderator := false
 
 	if exists, err := rdb.SIsMember(ctx, "moderators", userKey).Result(); err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
-		// Generate some tokens for him
 		if exists {
-			token, err = tokens.Generate(userKey, RoleModerator)
-		} else {
-			token, err = tokens.Generate(userKey, RoleUser)
-		}
-		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+			moderator = true
 		}
 	}
 
 	// Encode to JSON and send him
-	resBytes, err := json.Marshal(&loginResponse{token})
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	var resBytes []byte
+	if moderator {
+		token, err = tokens.Generate(userKey, RoleModerator)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(resBytes); err != nil {
-		log.Error(err)
+		resBytes, err = json.Marshal(&loginResponse{token, RoleModerator})
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		token, err = tokens.Generate(userKey, RoleUser)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		resBytes, err = json.Marshal(&loginResponse{token, RoleUser})
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(resBytes); err != nil {
+			log.Error(err)
+		}
 	}
 }

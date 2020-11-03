@@ -36,6 +36,7 @@ type loginRequest struct {
 
 type loginResponse struct {
 	Token string `json:"token"`
+	Role string `json:"role"`
 }
 
 const RoleUser = "user"
