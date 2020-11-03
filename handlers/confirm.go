@@ -61,7 +61,7 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := rdb.HSet(ctx, claims.Key, "confirm").Result(); err != nil {
+	if _, err := rdb.HSet(ctx, claims.Key, "confirm", "1").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
