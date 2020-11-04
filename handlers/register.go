@@ -121,8 +121,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	auth := smtp.PlainAuth("softwarecenter@parrotsec.org", email, password, "smtp.parrotsec.org")
 	to := []string{inRequest.Email}
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	body := fmt.Sprintf(
-		`From: softwarecenter@parrotsec.org
+		mime + `From: softwarecenter@parrotsec.org
 To: %s
 Subject: Parrot Software Center Email Confirmation
 

@@ -76,8 +76,10 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte(`<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://parrotsec.org/images/logo.png" /></p>
 <h1 style="color: #2196f3; text-align: center;">Parrot Software Center Email Confirmation</h1>
+<section style="width: 500px; display: block; margin-left: auto; margin-right: auto">
 <p>Your email was confirmed, thanks! Happy hacking!</p>
 <p>&nbsp;</p>
+</section>
 <h4 style="text-align: center;">Copyright &copy; 2020 Parrot Security CIC</h4>`)); err != nil {
 		log.Error(err)
 	}
