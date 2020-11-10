@@ -111,10 +111,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 
 		}
+	}
 
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write(resBytes); err != nil {
-			log.Error(err)
-		}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(resBytes); err != nil {
+		log.Error(err)
 	}
 }

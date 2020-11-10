@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"parrot-software-center-backend/utils"
-	"strings"
 )
 
 // PUT Delete to delete a non polite review
@@ -39,19 +38,20 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validating moderator role
-	if _, err := rdb.ZRank(ctx, "moderators", userKey).Result(); err != nil && err != redis.Nil {
+	if exists, err := rdb.SIsMember(ctx, "moderators", userKey).Result(); err != nil && err != redis.Nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
-		if err == redis.Nil {
+		if !exists {
 			log.Error(fmt.Errorf("Unauthorized access: %s", userKey))
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 	}
 
-	ratingKey := fmt.Sprintf("rating_%s_%s", inRequest.Author, strings.Split(userKey, "_")[1])
+	fmt.Printf(userKey)
+	ratingKey := fmt.Sprintf("rating_%s_%s", inRequest.Package, inRequest.Author)
 
 	if _, err := rdb.ZRem(ctx, "ratings", ratingKey).Result(); err != nil {
 		log.Error(err)
