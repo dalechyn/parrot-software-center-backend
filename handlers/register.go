@@ -71,7 +71,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := rdb.HSet(ctx,
 		userKey,
-		"email", inRequest.Email, "password", string(bytes), "confirmed", "0").Result(); err != nil {
+		"email", inRequest.Email, "password", string(bytes), "confirmed", "0", "banned", "0").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

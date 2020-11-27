@@ -10,6 +10,16 @@ type reviewResponse struct {
 	Commentary string `json:"commentary"`
 }
 
+type reportResponse struct {
+	ReportedBy string `json:"reportedBy"`
+	ReportedUser string `json:"reportedUser"`
+	PackageName string `json:"packageName"`
+	Commentary string `json:"commentary"`
+	Reviewed bool `json:"reviewed"`
+	ReviewedBy string `json:"reviewedBy"`
+	ReviewedDate string `json:"reviewedDate"`
+}
+
 type rateRequest struct {
 	Token string `json:"token"`
 	Name string `json:"name"`
@@ -23,10 +33,21 @@ type deleteRequest struct {
 	Author string `json:"author"`
 }
 
+type reportsRequest struct {
+	Token string `json:"token"`
+}
+
 type registerRequest struct {
 	Login    string `json:"login"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type reportRequest struct {
+	Token string `json:"token"`
+	Commentary string `json:"commentary"`
+	ReportedUser string `json:"reportedUser"`
+	PackageName string `json:"packageName"`
 }
 
 type loginRequest struct {
