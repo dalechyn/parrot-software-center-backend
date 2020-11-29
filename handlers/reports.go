@@ -61,7 +61,7 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 
 	var lookedUpReports []reportResponse
 	for _, reportKey := range reportsKeys {
-		results, err := rdb.HMGet(ctx, reportKey, "commentary", "reviewed", "reviewed_by", "reviewed_date").Result()
+		results, err := rdb.HMGet(ctx, reportKey, "commentary", "reviewed", "reviewed_by", "reviewed_date", "review").Result()
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -76,13 +76,14 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 		}
 
 		lookedUpReports = append(lookedUpReports, reportResponse{
-			PackageName: splitted[0],
-			ReportedUser: splitted[1],
-			ReportedBy: splitted[2],
+			PackageName: splitted[1],
+			ReportedUser: splitted[2],
+			ReportedBy: splitted[4],
 			Commentary: results[0].(string),
 			Reviewed: reviewed,
 			ReviewedBy: results[2].(string),
 			ReviewedDate: results[3].(string),
+			Review: results[4].(string),
 		})
 	}
 

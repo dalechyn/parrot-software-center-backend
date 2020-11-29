@@ -18,6 +18,7 @@ type reportResponse struct {
 	Reviewed bool `json:"reviewed"`
 	ReviewedBy string `json:"reviewedBy"`
 	ReviewedDate string `json:"reviewedDate"`
+	Review string `json:"review"`
 }
 
 type rateRequest struct {
@@ -25,6 +26,18 @@ type rateRequest struct {
 	Name string `json:"name"`
 	Rating float64 `json:"rating"`
 	Comment string `json:"commentary"`
+}
+
+type reviewReportRequest struct {
+	Token string `json:"token"`
+	PackageName string `json:"packageName"`
+	Review string `json:"revision"`
+	ReviewedBy string `json:"reviewedBy"`
+	ReviewedDate string `json:"reviewedDate"`
+	ReportedBy string `json:"reportedBy"`
+	Ban bool `json:"ban"`
+	DeleteReview bool `json:"deleteReview"`
+	ReportedUser string `json:"reportedUser"`
 }
 
 type deleteRequest struct {

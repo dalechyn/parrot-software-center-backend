@@ -38,8 +38,8 @@ func Report(w http.ResponseWriter, r *http.Request) {
 
 	// report_{packageName}_{reportedUser}_{whoreported}
 	reportKey := fmt.Sprintf("report_%s_%s_%s", inRequest.PackageName, inRequest.ReportedUser, authorKey)
-	if _, err := rdb.HSet(ctx, reportKey, "commentary", inRequest.Commentary, "reviewed", "0", "reviewed_by", "",
-		"reviewed_date", "").Result(); err != nil {
+	if _, err := rdb.HSet(ctx, reportKey, "commentary", inRequest.Commentary,
+		"reviewed", "0", "reviewed_by", "", "reviewed_date", "", "review", "").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
