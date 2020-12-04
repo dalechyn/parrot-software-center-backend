@@ -7,6 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"strings"
+	"time"
+)
+
+const (
+	ReportUnreviewed = 0
+	ReportReviewed = 1
 )
 
 // POST report to report
@@ -37,15 +44,18 @@ func Report(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// report_{packageName}_{reportedUser}_{whoreported}
-	reportKey := fmt.Sprintf("report_%s_%s_%s", inRequest.PackageName, inRequest.ReportedUser, authorKey)
+	reportKey := fmt.Sprintf("report_%s_%s_%s", inRequest.PackageName, inRequest.ReportedUser, strings.Split(authorKey, "_")[1])
 	if _, err := rdb.HSet(ctx, reportKey, "commentary", inRequest.Commentary,
-		"reviewed", "0", "reviewed_by", "", "reviewed_date", "", "review", "").Result(); err != nil {
+		"date", time.Now().Unix(), "reviewed_by", "", "reviewed_date", "", "review", "").Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if _, err := rdb.SAdd(ctx, "reports", reportKey).Result(); err != nil {
+	if _, err := rdb.ZAdd(ctx, "reports", &redis.Z{
+		Score:  ReportUnreviewed,
+		Member: reportKey,
+	}).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

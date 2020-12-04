@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"time"
 )
 
 // POST reviewReport to review a report and ban user as an option
@@ -75,9 +76,20 @@ func ReviewReport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if _, err = rdb.HMSet(ctx, fmt.Sprintf("report_%s_%s_%s", inRequest.PackageName, inRequest.ReportedUser,
-		inRequest.ReportedBy), "reviewed", "1", "reviewed_by", inRequest.ReviewedBy, "reviewed_date",
-		inRequest.ReviewedDate, "review", inRequest.Review).Result(); err != nil {
+	reportKey := fmt.Sprintf("report_%s_%s_%s", inRequest.PackageName, inRequest.ReportedUser,
+		inRequest.ReportedBy)
+
+	if _, err = rdb.HMSet(ctx, reportKey, "reviewed_by", inRequest.ReviewedBy, "reviewed_date",
+		time.Now().Unix(), "review", inRequest.Review).Result(); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := rdb.ZIncr(ctx, "reports", &redis.Z{
+		Member: reportKey,
+		Score: 1,
+	}).Result(); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

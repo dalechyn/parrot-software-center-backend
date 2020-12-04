@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"parrot-software-center-backend/utils"
+	"strconv"
 	"strings"
 )
 
@@ -52,7 +53,15 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	reportsKeys, err := rdb.SMembers(ctx, "reports").Result()
+	includeReviewed := "0"
+	if inRequest.ShowReviewed {
+		includeReviewed = "1"
+	}
+
+	reportsKeys, err := rdb.ZRangeByScoreWithScores(ctx, "reports", &redis.ZRangeBy{
+		Min:    "0",
+		Max:    includeReviewed,
+	}).Result()
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -60,8 +69,10 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var lookedUpReports []reportResponse
-	for _, reportKey := range reportsKeys {
-		results, err := rdb.HMGet(ctx, reportKey, "commentary", "reviewed", "reviewed_by", "reviewed_date", "review").Result()
+	for _, z := range reportsKeys {
+		reportKey := z.Member.(string)
+		results, err := rdb.HMGet(ctx, reportKey, "commentary", "reviewed_by", "reviewed_date",
+			"review", "date").Result()
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -71,19 +82,37 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 		splitted := strings.Split(reportKey, "_")
 
 		reviewed := false
-		if results[1] == "1" {
+		if z.Score == 1 {
 			reviewed = true
+		}
+
+		reviewedDate := 0
+		if reviewed {
+			reviewedDate, err = strconv.Atoi(results[2].(string))
+			if err != nil {
+				log.Error(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		date, err := strconv.Atoi(results[4].(string))
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		lookedUpReports = append(lookedUpReports, reportResponse{
 			PackageName: splitted[1],
 			ReportedUser: splitted[2],
-			ReportedBy: splitted[4],
+			ReportedBy: splitted[3],
 			Commentary: results[0].(string),
 			Reviewed: reviewed,
-			ReviewedBy: results[2].(string),
-			ReviewedDate: results[3].(string),
-			Review: results[4].(string),
+			ReviewedBy: results[1].(string),
+			ReviewedDate: reviewedDate,
+			Review: results[3].(string),
+			Date: date,
 		})
 	}
 
