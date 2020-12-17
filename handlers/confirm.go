@@ -5,12 +5,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // GET route to confirm registered account
@@ -73,14 +73,15 @@ func Confirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	content, err := ioutil.ReadFile("static/success.html")
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write([]byte(`<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://parrotsec.org/images/logo.png" /></p>
-<h1 style="color: #2196f3; text-align: center;">Parrot Software Center Email Confirmation</h1>
-<section style="width: 500px; display: block; margin-left: auto; margin-right: auto">
-<p>Your email was confirmed, thanks! Happy hacking!</p>
-<p>&nbsp;</p>
-</section>
-<h4 style="text-align: center;">Copyright &copy; 2020 Parrot Security CIC</h4>`)); err != nil {
+	if _, err := w.Write([]byte(content)); err != nil {
 		log.Error(err)
 	}
 }

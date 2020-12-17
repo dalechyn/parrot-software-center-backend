@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+	"io/ioutil"
 	"net/http"
 	"net/smtp"
 	"os"
 	"parrot-software-center-backend/models"
 	"parrot-software-center-backend/utils"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -121,18 +123,29 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	auth := smtp.PlainAuth(email, email, password, "smtp.parrotsec.org")
 	to := []string{inRequest.Email}
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body := fmt.Sprintf(
-		mime + `From: %s
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
+
+	content, err := ioutil.ReadFile("static/confirm.html")
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+
+	text := mime + `From: Software Center <%s>
 To: %s
 Subject: Parrot Software Center Email Confirmation
 
-<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://parrotsec.org/images/logo.png" /></p>
-<h1 style="color: #2196f3; text-align: center;">Parrot Software Center Email Confirmation</h1>
-<p>Hi! To confirm your Parrot Software Center account, please follow this <a href="http://165.227.140.210:8000/confirm/%s">link</a>.</p>
-<p>If that wasn't you, just ignore this letter.</p>
-<p>&nbsp;</p>
-<h4 style="text-align: center;">Copyright &copy; 2020 Parrot Security CIC</h4>`, email, to, emailConfirmationJWT)
+` + string(content)
+
+	fmt.Println(emailConfirmationJWT)
+	fmt.Println(text)
+
+	body := fmt.Sprintf(
+		text, email, strings.Join(to, ", "), emailConfirmationJWT)
+
+	fmt.Println(body)
 	msg := []byte(body)
 
 	if err := smtp.SendMail("smtp.parrotsec.org:587", auth, email, to, msg); err != nil {
