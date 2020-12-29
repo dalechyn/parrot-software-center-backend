@@ -31,8 +31,25 @@ func init() {
 }
 
 func main() {
+	var prod bool
+	prodStr, exists := os.LookupEnv("PROD")
+	if !exists {
+		prod = false
+	} else {
+		if prodStr == "1" {
+			prod = true
+		}
+	}
+
+	var serverAddr string
+	if prod {
+		serverAddr = ":443"
+	} else {
+		serverAddr = ":8000"
+	}
+
 	srv := &http.Server{
-		Addr: ":8000",
+		Addr: serverAddr,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
@@ -42,8 +59,15 @@ func main() {
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+		if prod {
+			// cert-file and cert-key files should be in the working directory
+			if err := srv.ListenAndServeTLS("cert-file.pem", "cert-key.key"); err != nil {
+				log.Println(err)
+			}
+		} else {
+			if err := srv.ListenAndServe(); err != nil {
+				log.Println(err)
+			}
 		}
 	}()
 

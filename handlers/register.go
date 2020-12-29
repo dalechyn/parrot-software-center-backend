@@ -139,13 +139,9 @@ Subject: Parrot Software Center Email Confirmation
 
 ` + string(content)
 
-	fmt.Println(emailConfirmationJWT)
-	fmt.Println(text)
-
 	body := fmt.Sprintf(
 		text, email, strings.Join(to, ", "), emailConfirmationJWT)
 
-	fmt.Println(body)
 	msg := []byte(body)
 
 	if err := smtp.SendMail("smtp.parrotsec.org:587", auth, email, to, msg); err != nil {
