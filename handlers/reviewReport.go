@@ -34,7 +34,7 @@ func ReviewReport(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

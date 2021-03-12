@@ -70,8 +70,18 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	Token string `json:"token"`
+	AccessToken string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 	Role string `json:"role"`
+}
+
+type tokenRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type tokenResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 const RoleUser = "user"

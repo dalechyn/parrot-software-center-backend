@@ -17,6 +17,7 @@ func Router() http.Handler  {
 	r.HandleFunc("/rate", handlers.Rate).Methods("PUT")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")
+	r.HandleFunc("/refresh", handlers.Refresh).Methods("POST")
 	r.HandleFunc("/delete", handlers.Delete).Methods("POST")
 	r.HandleFunc("/report", handlers.Report).Methods("POST")
 	r.HandleFunc("/reports", handlers.Reports).Methods("POST")

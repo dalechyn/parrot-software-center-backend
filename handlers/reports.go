@@ -33,10 +33,11 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userKey, err := utils.GetKeyFromToken(inRequest.Token)
+	log.Info("REPORT USERKEY:", userKey)
 
 	if err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

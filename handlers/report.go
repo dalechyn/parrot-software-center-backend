@@ -39,7 +39,7 @@ func Report(w http.ResponseWriter, r *http.Request) {
 	authorKey, err := utils.GetKeyFromToken(inRequest.Token)
 	if err != nil {
 		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

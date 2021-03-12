@@ -17,17 +17,9 @@ var config struct {
 }
 
 func init() {
-	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second * 15,
+	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second*15,
 		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
-	flag.BoolVar(&config.debug, "debug", false, "debug")
 	flag.Parse()
-
-	if config.debug {
-		// The TextFormatter is default, you don't actually have to do this.
-		log.SetFormatter(&log.TextFormatter{})
-	} else {
-		log.SetFormatter(&log.JSONFormatter{})
-	}
 }
 
 func main() {
@@ -43,7 +35,7 @@ func main() {
 
 	var serverAddr string
 	if prod {
-		serverAddr = ":443"
+		serverAddr = ":80"
 	} else {
 		serverAddr = ":8000"
 	}
@@ -54,20 +46,12 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler: Router(), // Pass our instance of gorilla/mux in.
+		Handler:      Router(), // Pass our instance of gorilla/mux in.
 	}
-
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		if prod {
-			// cert-file and cert-key files should be in the working directory
-			if err := srv.ListenAndServeTLS("cert-file.pem", "cert-key.key"); err != nil {
-				log.Println(err)
-			}
-		} else {
-			if err := srv.ListenAndServe(); err != nil {
-				log.Println(err)
-			}
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
 		}
 	}()
 

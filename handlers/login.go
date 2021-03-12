@@ -67,7 +67,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := ""
+	accessToken := ""
+	refreshToken := ""
 	moderator := false
 
 	if exists, err := rdb.SIsMember(ctx, "moderators", userKey).Result(); err != nil {
@@ -83,28 +84,28 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Encode to JSON and send him
 	var resBytes []byte
 	if moderator {
-		token, err = tokens.Generate(userKey, RoleModerator)
+		accessToken, refreshToken, err = tokens.GenerateTokens(userKey, RoleModerator)
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		resBytes, err = json.Marshal(&loginResponse{token, RoleModerator})
+		resBytes, err = json.Marshal(&loginResponse{accessToken, refreshToken, RoleModerator})
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	} else {
-		token, err = tokens.Generate(userKey, RoleUser)
+		accessToken, refreshToken, err = tokens.GenerateTokens(userKey, RoleUser)
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		resBytes, err = json.Marshal(&loginResponse{token, RoleUser})
+		resBytes, err = json.Marshal(&loginResponse{accessToken, refreshToken, RoleUser})
 		if err != nil {
 			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
