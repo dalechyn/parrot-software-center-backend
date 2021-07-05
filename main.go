@@ -19,22 +19,13 @@ var config struct {
 func init() {
 	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second*15,
 		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.BoolVar(&config.debug, "debug", false, "debug mode")
 	flag.Parse()
 }
 
 func main() {
-	var prod bool
-	prodStr, exists := os.LookupEnv("PROD")
-	if !exists {
-		prod = false
-	} else {
-		if prodStr == "1" {
-			prod = true
-		}
-	}
-
 	var serverAddr string
-	if prod {
+	if !config.debug {
 		serverAddr = ":80"
 	} else {
 		serverAddr = ":8000"

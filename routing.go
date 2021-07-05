@@ -22,6 +22,9 @@ func Router() http.Handler  {
 	r.HandleFunc("/report", handlers.Report).Methods("POST")
 	r.HandleFunc("/reports", handlers.Reports).Methods("POST")
 	r.HandleFunc("/reviewReport", handlers.ReviewReport).Methods("POST")
+	r.HandleFunc("/isolated", handlers.Isolated).Methods("GET")
+	r.HandleFunc("/isolated/add", handlers.AddIsolated).Methods("POST")
+	r.HandleFunc("/isolated/remove", handlers.RemoveIsolated).Methods("POST")
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets")))).
 		Methods("GET")
 
