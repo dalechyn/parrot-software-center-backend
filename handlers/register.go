@@ -113,13 +113,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	emailConfirmationJWT, _ := token.SignedString([]byte(emailSecret))
 
 	// Connecting to smtp server and sending the confirmation email
-	email, loginExists := os.LookupEnv("EMAIL_LOGIN")
-	password, passwordExists := os.LookupEnv("EMAIL_PASSWORD")
-	if !loginExists || !passwordExists {
-		log.Error("Email credentials are not set")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	email := utils.GetEmail()
+	password := utils.GetEmailPassword()
 
 	auth := smtp.PlainAuth(email, email, password, "smtp.parrotsec.org")
 	to := []string{inRequest.Email}

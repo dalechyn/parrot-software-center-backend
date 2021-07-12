@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
+	"parrot-software-center-backend/utils"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var config struct {
@@ -19,22 +19,14 @@ var config struct {
 func init() {
 	flag.DurationVar(&config.gracefulExitWait, "graceful-timeout", time.Second*15,
 		"the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.BoolVar(&config.debug, "debug", false, "debug mode")
 	flag.Parse()
+	utils.Load()
 }
 
 func main() {
-	var prod bool
-	prodStr, exists := os.LookupEnv("PROD")
-	if !exists {
-		prod = false
-	} else {
-		if prodStr == "1" {
-			prod = true
-		}
-	}
-
 	var serverAddr string
-	if prod {
+	if !config.debug {
 		serverAddr = ":80"
 	} else {
 		serverAddr = ":8000"
@@ -48,6 +40,7 @@ func main() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      Router(), // Pass our instance of gorilla/mux in.
 	}
+
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {

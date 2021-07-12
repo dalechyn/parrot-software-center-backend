@@ -22,7 +22,7 @@ COPY . .
 RUN go build -o main .
 
 # Export necessary port
-EXPOSE 8000
+EXPOSE 80
 
 # Command to run when starting the container
-ENTRYPOINT ["/build/main", "-debug"]
+CMD ["/build/main"]

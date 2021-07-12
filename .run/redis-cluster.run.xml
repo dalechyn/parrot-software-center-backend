@@ -2,6 +2,7 @@
   <configuration default="false" name="redis-cluster" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
     <deployment type="docker-compose.yml">
       <settings>
+        <option name="envFilePath" value="" />
         <option name="envVars">
           <list>
             <DockerEnvVarImpl>
@@ -15,6 +16,12 @@
           </list>
         </option>
         <option name="sourceFilePath" value="../redis-compose/docker-compose.yaml" />
+        <option name="upDetach" value="false" />
+        <option name="upExitCodeFromService" value="" />
+        <upScaledServices>
+          <entry key="sentinel" value="3" />
+        </upScaledServices>
+        <option name="upTimeout" value="" />
       </settings>
     </deployment>
     <method v="2" />

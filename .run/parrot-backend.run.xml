@@ -3,47 +3,8 @@
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="1.0.0" />
-        <option name="buildCliOptions" value="" />
-        <option name="command" value="" />
         <option name="containerName" value="parrot-backend" />
-        <option name="entrypoint" value="" />
-        <option name="envVars">
-          <list>
-            <DockerEnvVarImpl>
-              <option name="name" value="PROD" />
-              <option name="value" value="1" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="SECRET_KEY" />
-              <option name="value" value="AKSJDksajdlkasjdsalkjdl315" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="REDIS_PASSWORD" />
-              <option name="value" value="as314" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="EMAIL_KEY" />
-              <option name="value" value="asjdlkh1235yjkhaskdh821hkjhxakjzfhd" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="MODERATOR_KEY" />
-              <option name="value" value="xfkuibhlkdghdfoiubyurh34oiueoi8gh3245ik3hy" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="SENTINEL_PASSWORD" />
-              <option name="value" value="sentinel_password" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="EMAIL_LOGIN" />
-              <option name="value" value="softwarecenter@parrotsec.org" />
-            </DockerEnvVarImpl>
-            <DockerEnvVarImpl>
-              <option name="name" value="EMAIL_PASSWORD" />
-              <option name="value" value="fwyrzXt87wVHjdB" />
-            </DockerEnvVarImpl>
-          </list>
-        </option>
-        <option name="commandLineOptions" value="--network redis_cluster -p 80:80" />
+        <option name="commandLineOptions" value="--network redis_cluster -p 8000:8000" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>
     </deployment>

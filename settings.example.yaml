@@ -1,0 +1,22 @@
+settings:
+  # Initial moderators list
+  moderators:
+    - moderator1
+    - moderator2
+  # Isolated packages that require user configuration
+  isolatedPackages:
+    - package1
+    - package2
+  # Secret keys for authentication and account confirmation
+  keys:
+    main: 'main'
+    email: 'email'
+    moderator: 'moderator'
+  # Redis passwords
+  redis:
+    master: 'master'
+    sentinel: 'sentinel'
+  # Email service
+  email:
+    mail: 'somemail@mail.com'
+    password: 'password'
