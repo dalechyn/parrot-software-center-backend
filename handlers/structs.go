@@ -84,5 +84,14 @@ type tokenResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type isolatedResponse struct {
+	Packages []string `json:"packages"`
+}
+
+type isolatedRequest struct {
+	Token string `json:"token"`
+	Name string `json:"name"`
+}
+
 const RoleUser = "user"
 const RoleModerator = "moderator"
