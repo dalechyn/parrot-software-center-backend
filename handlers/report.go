@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"parrot-software-center-backend/tokens"
 	"parrot-software-center-backend/utils"
 	"strings"
 	"time"
@@ -36,7 +37,7 @@ func Report(w http.ResponseWriter, r *http.Request) {
 		Password: utils.GetRedisPassword(),
 	})
 
-	authorKey, err := utils.GetKeyFromToken(inRequest.Token)
+	authorKey, err := tokens.GetKeyFromToken(inRequest.Token)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
-	"os"
+	"parrot-software-center-backend/utils"
 	"time"
 )
 
@@ -31,15 +31,6 @@ type refreshTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func getSecretKey() (string, error) {
-	secretKey, exists := os.LookupEnv("SECRET_KEY")
-	if !exists {
-		err := errors.New("secret key not found")
-		return "", err
-	}
-	return secretKey, nil
-}
-
 // Generates Access token which has the UserKey inside
 func generateAccessToken(userKey string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaims{
@@ -48,12 +39,7 @@ func generateAccessToken(userKey string, role string) (string, error) {
 		accessTokenType,
 		jwt.StandardClaims{ExpiresAt: time.Now().Add(accessTokenExpiry).Unix()}})
 
-	secretKey, exists := os.LookupEnv("SECRET_KEY")
-	if !exists {
-		log.Error("Secret key not found")
-		return "", errors.New("secret key not found")
-	}
-
+	secretKey := utils.GetSecret()
 	return token.SignedString([]byte(secretKey))
 }
 
@@ -65,11 +51,7 @@ func generateRefreshToken(userID string, role string) (string, error) {
 		refreshTokenType,
 		jwt.StandardClaims{ExpiresAt: time.Now().Add(refreshTokenExpiry).Unix()}})
 
-	secretKey, exists := os.LookupEnv("SECRET_KEY")
-	if !exists {
-		log.Error("Secret key not found")
-		return "", errors.New("secret key not found")
-	}
+	secretKey := utils.GetSecret()
 
 	res, err := token.SignedString([]byte(secretKey))
 	if err != nil {
@@ -85,11 +67,7 @@ func generateRefreshToken(userID string, role string) (string, error) {
 // Validates refresh token by type, algorithm and expiry
 func parseRefreshToken(refreshToken string) (string, string, error) {
 	// Pulling out secret key to validate and decode refresh JWT
-	secretKey, err := getSecretKey()
-	if err != nil {
-		log.Error(err)
-		return "", "", err
-	}
+	secretKey:= utils.GetSecret()
 
 	token, err := jwt.ParseWithClaims(refreshToken, &refreshTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Checking encryption algorithm
@@ -181,4 +159,25 @@ func UpdateTokens(oldRefreshToken string) (string, string, error) {
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func GetKeyFromToken(tokenStr string) (string, error) {
+	hmacSecret := []byte(utils.GetSecret())
+	token, err := jwt.ParseWithClaims(tokenStr, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return hmacSecret, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	claims, ok := token.Claims.(*AccessTokenClaims)
+	if !ok || !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	return claims.UserKey, nil
 }

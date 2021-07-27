@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"parrot-software-center-backend/tokens"
 	"parrot-software-center-backend/utils"
 	"strconv"
 	"strings"
@@ -26,13 +27,13 @@ func Reports(w http.ResponseWriter, r *http.Request) {
 
 	// Decoding http request
 	inRequest := &reportsRequest{}
-	err := json.NewDecoder(r.Body).Decode(inRequest)
+	err := json.NewDecoder(r.Body).Decode(inRequest) 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	userKey, err := utils.GetKeyFromToken(inRequest.Token)
+	userKey, err := tokens.GetKeyFromToken(inRequest.Token)
 	log.Info("REPORT USERKEY:", userKey)
 
 	if err != nil {
